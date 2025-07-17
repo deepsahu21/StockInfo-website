@@ -46,17 +46,17 @@ Stock-Insights-App/
 ## 📸 Screenshots
 
 ### 🔥 Main Screen (Initial Load)
-<img src="images/StockApp_1.png" alt="Main Screen" width="600"/>
+<img src="examples/StockApp_1.png" alt="Main Screen" width="600"/>
 
 ---
 
 ### ✅ Successful Lookup (TSLA)
-<img src="images/StockApp_2.png" alt="TSLA Stock Info" width="600"/>
+<img src="examples/StockApp_2.png" alt="TSLA Stock Info" width="600"/>
 
 ---
 
 ### ❌ Invalid Ticker Handling
-<img src="images/StockApp_3.png" alt="Error Message" width="400"/>
+<img src="examples/StockApp_3.png" alt="Error Message" width="400"/>
 
 ---
 
