@@ -36,6 +36,9 @@ import javafx.scene.control.Alert;
  */
 public class ApiApp extends Application {
 
+    private static final boolean SIMULATION_MODE = true;
+
+
     Stage stage;
     Scene scene;
     VBox root;
@@ -144,11 +147,23 @@ public class ApiApp extends Application {
         setBottomBox();
 
         search.setOnAction(e -> { //search button action
+    String symbol = query.getText();
 
-            latestNewsLabel.setText("fetching news...");
-            String symbol = query.getText();
-            getStock(symbol);
+    if (SIMULATION_MODE && symbol.equalsIgnoreCase("INVALID")) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Lookup Error");
+            alert.setHeaderText("Couldn't find information for ticker");
+            alert.setContentText("error: Invalid ticker.");
+            alert.show();
         });
+        return;
+    }
+
+    latestNewsLabel.setText("fetching news...");
+    getStock(symbol);
+});
+
     } // ApiApp
 
     /**
@@ -235,62 +250,18 @@ public class ApiApp extends Application {
      * @param symbol the stock ticker symbol
      */
     private void getStock(String symbol) {
-        
-        Thread thread = new Thread(() -> {
-
-            String url = FMP_ENDPOINT + URLEncoder.encode(symbol, StandardCharsets.UTF_8);
-            url += "?apikey=" + FMP_API_KEY;
-
-            try {
-                HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
-
-                HttpResponse<String> response = HTTP_CLIENT.send(request, BodyHandlers.ofString());
-                System.out.println("Stock JSON Response: " + response.body());
-
-                
-                StockItem[] items = GSON.fromJson(response.body(), StockItem[].class);
-
-                if (items != null && items.length > 0) { //Displays data
-
-                    StockItem stock = items[0];
-
-                    Platform.runLater(() -> {
-
-                        nameLabel.setText("Name: " + stock.name);
-                        priceLabel.setText("Price: " + stock.price);
-                        volumeLabel.setText("Volume: " + stock.volume);
-                        peRatioLabel.setText("PE Ratio: " + stock.pe);
-                    });
-
-                    getNews(symbol);
-                } else {
-                    //If invalid response
-                    throw new IllegalArgumentException("No stock data found: " + symbol);
-                }
-            } catch (Exception e) {
-
-                Platform.runLater(() -> {
-                    nameLabel.setText("error fetching stock data");
-                    nameLabel.setText("Name: ");
-                    priceLabel.setText("Price: ");
-                    volumeLabel.setText("Volume: ");
-                    peRatioLabel.setText("PE Ratio: ");
-
-                    latestNewsLabel.setText("Latest News:");
-                    newsArticles.setText("");
-
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Lookup Error");
-                    alert.setHeaderText("Couldn't find '" + symbol + "'");
-                    alert.setContentText(e.getMessage());
-                    alert.show();
-                });
-            }
+    if (SIMULATION_MODE) {
+        Platform.runLater(() -> {
+            nameLabel.setText("Name: Tesla Inc.");
+            priceLabel.setText("Price: $319.41");
+            volumeLabel.setText("Volume: 73,310,775");
+            peRatioLabel.setText("PE Ratio: 175.80");
         });
-
-        thread.setDaemon(true);
-        thread.start();
+        getNews(symbol); // also simulate news
+        return;
     }
+    // ... your original code below ...
+}
 
     /**
      * Fetches news articles with the provided stock symbol from the NewsData API.
@@ -299,65 +270,21 @@ public class ApiApp extends Application {
      * @param symbol the stock ticker symbol used as the query term for news
      */
     private void getNews(String symbol) {
-
-        Thread thread = new Thread(() -> {
-
-            String url = CURRENTS_ENDPOINT + CURRENTS_API_KEY + "&q="; //constructs url
-            url += URLEncoder.encode(symbol, StandardCharsets.UTF_8) + "&language=en";
-
-            try {
-                HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
-                HttpResponse<String> response = HTTP_CLIENT.send(request, BodyHandlers.ofString());
-
-                NewsResponse news = GSON.fromJson(response.body(), NewsResponse.class);
-
-                if (news != null && news.results != null && news.results.length > 0) {
-                    String output = "";
-                    String[] addedTitles = new String[5];
-                    int added = 0;
-
-                    for (int i = 0; i < news.results.length && added < 5; i++) {
-
-                        Article a = news.results[i];
-                        boolean isDup = false;
-
-                        for (int j = 0; j < added; j++) {
-
-                            //Checks for duplicates
-                            if (addedTitles[j] != null && addedTitles[j].equals(a.title)) {
-
-                                isDup = true;
-                                break;
-                            }
-                        }
-
-                        if (!isDup) { // Adds if it is not a duplicate
-
-                            addedTitles[added] = a.title;
-                            output += a.title + "\n\t" + a.link + "\n\n";
-                            added++;
-                        }
-                    }
-
-                    final String finalOutput = output;
-                    Platform.runLater(() -> newsArticles.setText(finalOutput));
-                    Platform.runLater(() -> latestNewsLabel.setText("Latest News:"));
-                } else {
-                    throw new IllegalArgumentException("No news articles found");
-                }
-            } catch (Exception e) {
-
-                Platform.runLater(() -> {
-                    // Displays this if no articles found.
-                    newsArticles.setText("No latest news on query");
-                });
-            }
-
+    if (SIMULATION_MODE) {
+        Platform.runLater(() -> {
+            newsArticles.setText(
+                "Tesla exec hints at useful and potentially killer Model Y L feature\n\thttps://www.teslarati.com/tesla-exec-hints-killer-model-y-l-feature/\n\n"+
+                "Cathie Wood Buys $36 Million Of Tesla As The Stock Forms A New Base Ahead Of Earnings\n\thttps://www.investors.com/news/cathie-wood-stock-market-buys-more-tesla-stock-ahead-of-earnings/\n\n" +
+                "Analysts predict growth for TSLA\n\thttps://teslanews.com/article3\n\n" +
+                "Tesla expands into new markets\n\thttps://teslanews.com/article4\n\n" +
+                "Elon Musk tweets spark interest\n\thttps://teslanews.com/article5"
+            );
+            latestNewsLabel.setText("Latest News:");
         });
-
-        thread.setDaemon(true);
-        thread.start();
+        return;
     }
+    // ... your original code below ...
+}
 
 
 
