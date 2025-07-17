@@ -1,0 +1,20 @@
+# IDE settings
+.idea/
+.vscode/
+*.iml
+
+# Build artifacts
+bin/
+out/
+target/
+*.class
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Maven
+.mvn/
+
+# Env vars
+.env
